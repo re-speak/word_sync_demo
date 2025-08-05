@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useMemo } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useGameStore } from "@/store/gameStore";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Player } from "@/types/game";
@@ -29,8 +29,8 @@ function GameSessionContent() {
     roleDisplayName,
   });
 
-  // Auto-join session if session ID is in URL
-  useMemo(() => {
+  // Auto-join session if session ID is in URL - FIXED: useEffect for side effects
+  useEffect(() => {
     if (sessionId && isValidRole && !session) {
       const player: Player = {
         id: `${role}-${Date.now()}`,
@@ -100,112 +100,102 @@ function GameSessionContent() {
             <div className="w-16 h-16 bg-wordsync-orange rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-wordsync-navy mb-2">
-              WordSync
-            </h1>
+            <h2 className="text-2xl font-bold text-wordsync-navy mb-2">
+              Ready to {role === "tutor" ? "Teach" : "Learn"}?
+            </h2>
             <p className="text-gray-600">
-              {sessionId
-                ? `Joining session as ${roleDisplayName}`
-                : "Ready to start playing?"}
+              You're joining as a <strong>{roleDisplayName}</strong>
             </p>
           </div>
 
-          {/* Role Display */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">You are joining as:</p>
-            <div className="flex items-center justify-center space-x-2">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  role === "tutor" ? "bg-wordsync-navy" : "bg-wordsync-orange"
-                }`}
-              />
-              <span className="font-semibold text-gray-800">
-                {roleDisplayName}
-              </span>
-            </div>
-          </div>
+          {session && gameState?.gameMode === "waiting" && (
+            <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-blue-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">
+                🎮 Session Created!
+              </h3>
 
-          {/* Session Info */}
-          {sessionId ? (
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-700 mb-2">Session ID:</p>
-              <p className="font-mono text-lg font-bold text-blue-900">
-                {sessionId}
-              </p>
-              <p className="text-xs text-blue-600 mt-2">
-                Waiting for game session to load...
-              </p>
-            </div>
-          ) : (
-            <div className="mb-6">
-              <p className="text-sm text-gray-600 mb-4">
-                Click "Start Game" to create a new session that others can join.
-              </p>
-            </div>
-          )}
-
-          {/* Session URL sharing - shown after creating session */}
-          {sessionUrl && (
-            <div className="mb-6 p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-700 mb-2">
-                🎉 Session created! Share this link with your partner:
-              </p>
-              <div className="bg-white p-3 rounded border mb-3">
-                <p className="font-mono text-xs text-green-900 break-all">
-                  {sessionUrl}
-                </p>
-              </div>
-              <button
-                onClick={() => navigator.clipboard.writeText(sessionUrl)}
-                className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-              >
-                📋 Copy Link
-              </button>
-            </div>
-          )}
-
-          {/* Session Status */}
-          {session && (
-            <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
-              <p className="text-sm text-yellow-700">
-                👥 Players: {session.participants.length}/2
-              </p>
-              <div className="text-xs text-yellow-600 mt-2">
-                {session.participants.map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-center space-x-2"
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        p.role === "tutor" ? "bg-blue-500" : "bg-orange-500"
-                      }`}
-                    ></span>
-                    <span>{p.name}</span>
+              {/* Session Code Display */}
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">Share this code:</p>
+                <div className="bg-white border-2 border-blue-300 rounded-lg p-4 mb-3">
+                  <div className="text-3xl font-mono font-bold text-blue-700 tracking-widest text-center">
+                    {session.sessionId}
                   </div>
-                ))}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(session.sessionId);
+                    // You could add a toast notification here
+                  }}
+                  className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  📋 Copy Session Code
+                </button>
               </div>
-              {session.participants.length < 2 && (
-                <p className="text-xs text-yellow-600 mt-2">
-                  Waiting for{" "}
-                  {session.participants.some((p) => p.role === "tutor")
-                    ? "student"
-                    : "tutor"}{" "}
-                  to join...
-                </p>
+
+              {/* OR Divider */}
+              <div className="flex items-center my-4">
+                <div className="flex-1 border-t border-gray-300"></div>
+                <span className="px-3 text-sm text-gray-500 bg-gray-50 rounded">
+                  OR
+                </span>
+                <div className="flex-1 border-t border-gray-300"></div>
+              </div>
+
+              {/* Share URL */}
+              {sessionUrl && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Share this link:</p>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={sessionUrl}
+                      readOnly
+                      className="flex-1 px-3 py-2 text-sm bg-gray-100 border border-gray-300 rounded-lg"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(sessionUrl);
+                        // You could add a toast notification here
+                      }}
+                      className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      📋 Copy
+                    </button>
+                  </div>
+                </div>
               )}
+
+              <p className="text-sm text-gray-500 mt-4 text-center">
+                Waiting for {role === "tutor" ? "student" : "tutor"} to join...
+              </p>
             </div>
           )}
 
-          {/* Start Game Button */}
-          {!sessionId && !session && (
-            <button
-              onClick={handleStartGame}
-              className="w-full flex items-center justify-center space-x-3 px-6 py-4 bg-wordsync-orange text-white rounded-lg hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-wordsync-orange focus:ring-offset-2 transition-colors font-semibold"
-            >
-              <Play className="w-5 h-5" />
-              <span>Start Game</span>
-            </button>
+          {!session && (
+            <>
+              <div className="mb-6">
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    What happens next:
+                  </h3>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Create a new game session</li>
+                    <li>• Get a shareable code or link</li>
+                    <li>• Share with your learning partner</li>
+                    <li>• Start playing together!</li>
+                  </ul>
+                </div>
+              </div>
+
+              <button
+                onClick={handleStartGame}
+                className="w-full bg-wordsync-orange text-white py-3 px-6 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-200 flex items-center justify-center space-x-2"
+              >
+                <Play className="w-5 h-5" />
+                <span>Create New Game</span>
+              </button>
+            </>
           )}
 
           {/* Instructions */}

@@ -60,6 +60,14 @@ const saveSessionToStorage = (
   messages: ChatMessage[],
   currentWordIndex: number
 ) => {
+  // SSR Guard: Only run in browser environment
+  if (typeof window === "undefined") {
+    console.warn(
+      "saveSessionToStorage: Not in browser environment, skipping localStorage save"
+    );
+    return;
+  }
+
   try {
     const sessionData = {
       session,
@@ -84,6 +92,14 @@ const saveSessionToStorage = (
 };
 
 const loadSessionFromStorage = () => {
+  // SSR Guard: Only run in browser environment
+  if (typeof window === "undefined") {
+    console.warn(
+      "loadSessionFromStorage: Not in browser environment, returning null"
+    );
+    return null;
+  }
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return null;
@@ -100,6 +116,14 @@ const loadSessionFromStorage = () => {
 };
 
 const clearSessionFromStorage = () => {
+  // SSR Guard: Only run in browser environment
+  if (typeof window === "undefined") {
+    console.warn(
+      "clearSessionFromStorage: Not in browser environment, skipping localStorage clear"
+    );
+    return;
+  }
+
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
@@ -241,7 +265,17 @@ export const useGameStore = create<GameStore>((set, get) => {
     },
 
     createSession: (creatorPlayer: Player) => {
-      const sessionId = Math.random().toString(36).substr(2, 9);
+      // Generate a short, user-friendly session code (6 characters: letters + numbers)
+      const generateSessionCode = () => {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Excludes confusing chars like I, O, 1, 0
+        let code = "";
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+
+      const sessionId = generateSessionCode();
       const initialScores =
         creatorPlayer.role === "student" ? { [creatorPlayer.id]: 0 } : {};
 
@@ -270,9 +304,9 @@ export const useGameStore = create<GameStore>((set, get) => {
 
       const initialMessages: ChatMessage[] = [
         {
-          message: `Session created! Waiting for ${
+          message: `🎮 Session ${sessionId} created! Share this code with your ${
             creatorPlayer.role === "tutor" ? "student" : "tutor"
-          } to join...`,
+          } to join the game.`,
           sender: "system",
           timestamp: Date.now(),
           type: "system",

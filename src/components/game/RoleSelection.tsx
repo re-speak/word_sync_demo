@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Users,
   GraduationCap,
@@ -9,9 +11,42 @@ import {
   MessageCircle,
   Clock,
   Star,
+  LogIn,
+  ArrowRight,
 } from "lucide-react";
 
 export default function RoleSelection() {
+  const router = useRouter();
+  const [tutorSessionCode, setTutorSessionCode] = useState("");
+  const [studentSessionCode, setStudentSessionCode] = useState("");
+
+  // Format session code as user types (auto-uppercase, max 6 chars)
+  const formatSessionCode = (value: string) => {
+    return value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 6);
+  };
+
+  const handleSessionJoin = (
+    role: "tutor" | "student",
+    sessionCode: string
+  ) => {
+    if (sessionCode.length >= 3) {
+      router.push(`/?role=${role}&session=${sessionCode}`);
+    }
+  };
+
+  const handleKeyPress = (
+    e: React.KeyboardEvent,
+    role: "tutor" | "student",
+    sessionCode: string
+  ) => {
+    if (e.key === "Enter") {
+      handleSessionJoin(role, sessionCode);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-wordsync-orange to-wordsync-navy flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full">
@@ -96,102 +131,206 @@ export default function RoleSelection() {
         {/* Role Selection Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Tutor Role */}
-          <Link
-            href="/?role=tutor"
-            className="group block p-8 bg-gradient-to-br from-wordsync-navy to-gray-700 rounded-2xl text-white hover:from-wordsync-navy hover:to-wordsync-navy transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="w-16 h-16 bg-yellow-400 rounded-xl flex items-center justify-center">
-                <GraduationCap className="w-8 h-8 text-gray-800" />
+          <div className="space-y-4">
+            {/* New Game Button */}
+            <Link
+              href="/?role=tutor"
+              className="group block p-6 bg-gradient-to-br from-wordsync-navy to-gray-700 rounded-2xl text-white hover:from-wordsync-navy hover:to-wordsync-navy transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+            >
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center">
+                  <GraduationCap className="w-6 h-6 text-gray-800" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">I'm a Tutor</h3>
+                  <p className="text-gray-200 text-sm">Start New Game</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold">I'm a Tutor</h3>
-                <p className="text-gray-200">Teaching & Guiding</p>
-              </div>
-            </div>
 
-            <div className="space-y-3 text-gray-200 mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <p>See the word that needs to be guessed</p>
+              <div className="space-y-2 text-gray-200 mb-4 text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                  <p>Create a session & get a code to share</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                  <p>Guide the learning experience</p>
+                </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <p>Listen to creative student descriptions</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <p>Control scoring and provide hints</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <p>Guide the learning experience</p>
-              </div>
-            </div>
 
-            <div className="bg-white bg-opacity-10 rounded-lg p-4 mb-4">
-              <p className="text-sm text-yellow-200">
-                <strong>Perfect for:</strong> Teachers, tutors, language
-                coaches, or anyone who enjoys guiding others
-              </p>
-            </div>
+              <div className="flex items-center justify-between">
+                <span className="text-yellow-400 font-bold">
+                  Create New Game
+                </span>
+                <Play className="w-5 h-5 text-yellow-400 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
 
-            <div className="flex items-center justify-between">
-              <span className="text-yellow-400 font-bold text-lg">
-                Start Teaching
-              </span>
-              <Play className="w-6 h-6 text-yellow-400 group-hover:translate-x-1 transition-transform" />
+            {/* Join Existing Session */}
+            <div className="p-6 bg-gray-50 rounded-2xl border-2 border-gray-200">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-wordsync-navy bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <LogIn className="w-5 h-5 text-wordsync-navy" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-800">
+                    Join Existing Game
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    Enter the session code
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="ABC123"
+                    value={tutorSessionCode}
+                    onChange={(e) =>
+                      setTutorSessionCode(formatSessionCode(e.target.value))
+                    }
+                    onKeyPress={(e) =>
+                      handleKeyPress(e, "tutor", tutorSessionCode)
+                    }
+                    className="w-full px-4 py-3 text-center text-lg font-mono font-bold bg-white border-2 border-gray-300 rounded-lg focus:border-wordsync-navy focus:outline-none tracking-widest uppercase"
+                    maxLength={6}
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <span className="text-xs text-gray-400">
+                      {tutorSessionCode.length}/6
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleSessionJoin("tutor", tutorSessionCode)}
+                  disabled={tutorSessionCode.length < 3}
+                  className="w-full py-3 bg-wordsync-navy text-white font-bold rounded-lg hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <span>Join as Tutor</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          </Link>
+          </div>
 
           {/* Student Role */}
-          <Link
-            href="/?role=student"
-            className="group block p-8 bg-gradient-to-br from-wordsync-orange to-orange-600 rounded-2xl text-white hover:from-wordsync-orange hover:to-wordsync-orange transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center">
-                <BookOpen className="w-8 h-8 text-wordsync-orange" />
+          <div className="space-y-4">
+            {/* New Game Button */}
+            <Link
+              href="/?role=student"
+              className="group block p-6 bg-gradient-to-br from-wordsync-orange to-orange-600 rounded-2xl text-white hover:from-wordsync-orange hover:to-wordsync-orange transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+            >
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-wordsync-orange" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">I'm a Student</h3>
+                  <p className="text-orange-100 text-sm">Start New Game</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold">I'm a Student</h3>
-                <p className="text-orange-100">Learning & Describing</p>
-              </div>
-            </div>
 
-            <div className="space-y-3 text-orange-100 mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-                <p>Describe words creatively and clearly</p>
+              <div className="space-y-2 text-orange-100 mb-4 text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  <p>Create a session & invite your tutor</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                  <p>Practice communication skills</p>
+                </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-                <p>Practice communication skills</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-                <p>Learn from real-time feedback</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-                <p>Build vocabulary and confidence</p>
-              </div>
-            </div>
 
-            <div className="bg-white bg-opacity-10 rounded-lg p-4 mb-4">
-              <p className="text-sm text-orange-100">
-                <strong>Perfect for:</strong> Language learners, students, or
-                anyone wanting to improve communication skills
-              </p>
-            </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white font-bold">Create New Game</span>
+                <Play className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
 
-            <div className="flex items-center justify-between">
-              <span className="text-white font-bold text-lg">
-                Start Learning
-              </span>
-              <Play className="w-6 h-6 text-white group-hover:translate-x-1 transition-transform" />
+            {/* Join Existing Session */}
+            <div className="p-6 bg-gray-50 rounded-2xl border-2 border-gray-200">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-wordsync-orange bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <LogIn className="w-5 h-5 text-wordsync-orange" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-800">
+                    Join Existing Game
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    Enter the session code
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="ABC123"
+                    value={studentSessionCode}
+                    onChange={(e) =>
+                      setStudentSessionCode(formatSessionCode(e.target.value))
+                    }
+                    onKeyPress={(e) =>
+                      handleKeyPress(e, "student", studentSessionCode)
+                    }
+                    className="w-full px-4 py-3 text-center text-lg font-mono font-bold bg-white border-2 border-gray-300 rounded-lg focus:border-wordsync-orange focus:outline-none tracking-widest uppercase"
+                    maxLength={6}
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <span className="text-xs text-gray-400">
+                      {studentSessionCode.length}/6
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() =>
+                    handleSessionJoin("student", studentSessionCode)
+                  }
+                  disabled={studentSessionCode.length < 3}
+                  className="w-full py-3 bg-wordsync-orange text-white font-bold rounded-lg hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <span>Join as Student</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          </Link>
+          </div>
+        </div>
+
+        {/* Session Code Info */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
+              How to Connect with Others
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+              <div className="space-y-2">
+                <p className="font-semibold text-blue-700">
+                  Option 1: Session Code
+                </p>
+                <p>• Create a game and share your 6-digit code</p>
+                <p>
+                  • Others can join using the "Join Existing Game" boxes above
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="font-semibold text-purple-700">
+                  Option 2: Share Link
+                </p>
+                <p>• Copy your game URL and send it directly</p>
+                <p>• Others can click the link to join instantly</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Additional Info */}
